@@ -1,4 +1,4 @@
-`req` is a no-brainer library for making HTTP requests. It is heavily inspired by Python's requests library.
+`req` is a no-brainer library for making HTTP requests. It is heavily inspired by Python's [requests](https://docs.python-requests.org/en/latest/) library.
 
 `req` is a thin wrapper around the standard library's `http` and `json` packages. It provides a simple, consistent interface for sending HTTP requests and parsing responses. Responses are type-safe, thanks to Go 1.18's addition of generic type parameters.
 
