@@ -32,30 +32,46 @@ func initConfig() *requestConfig {
 	}
 }
 
-func Get[T any](url string, opts ...func(*requestConfig)) (*T, error) {
+type ResultTransformer[T any] interface {
+	Do() T
+}
+
+type HTTPResult[T any] struct {
+	r *T
+	c int
+}
+
+func (r *HTTPResult[T]) Res() *T         { return r.r }
+func (r *HTTPResult[T]) StatusCode() int { return r.c }
+
+func Get[T any](url string, opts ...func(*requestConfig)) (HTTPResult[T], error) {
 	config := initConfig()
+	r := HTTPResult[T]{}
 
 	ctx := config.ctx
 	defer config.cancelFunc()
 
 	req, err := http.NewRequestWithContext(ctx, MethodGET, url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("req: GET request to %s failed: %w", url, err)
+		return r, fmt.Errorf("req: GET request to %s failed: %w", url, err)
 	}
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("req: GET request to %s failed: %w", url, err)
+		return r, fmt.Errorf("req: GET request to %s failed: %w", url, err)
 	}
 	defer res.Body.Close()
+
+	r.c = res.StatusCode
 
 	var out T
 	err = json.NewDecoder(res.Body).Decode(&out)
 	if err != nil {
-		return nil, fmt.Errorf("req: GET request to %s failed: %w", url, err)
+		return r, fmt.Errorf("req: GET request to %s failed: %w", url, err)
 	}
 
-	return &out, nil
+	r.r = &out
+	return r, nil
 }
 
 func WithTimeout(t time.Duration) func(r *requestConfig) {

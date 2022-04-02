@@ -17,12 +17,13 @@ type responseType struct {
 func TestReq(t *testing.T) {
 
 	cases := []struct {
-		name          string
-		requestMethod string
-		serverDelay   time.Duration
+		name               string
+		requestMethod      string
+		serverDelay        time.Duration
+		serverResponseCode int
 	}{
 		{
-			name: "simple GET request", requestMethod: req.MethodGET,
+			name: "simple GET request", requestMethod: req.MethodGET, serverResponseCode: 200,
 		},
 	}
 
@@ -37,8 +38,12 @@ func TestReq(t *testing.T) {
 			if err != nil {
 				t.Errorf("did not expect error, but got one: %s", err.Error())
 			}
-			if !res.Success {
-				t.Errorf("wanted success = true, got %v", res.Success)
+			if !res.Res().Success {
+				t.Errorf("wanted success = true, got %v", res.Res())
+			}
+
+			if res.StatusCode() != c.serverResponseCode {
+				t.Errorf("wanted response code %d, got %d", c.serverResponseCode, res.StatusCode())
 			}
 		}
 	}
