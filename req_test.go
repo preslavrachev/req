@@ -23,7 +23,7 @@ func TestReq(t *testing.T) {
 		serverResponseCode int
 	}{
 		{
-			name: "simple GET request", requestMethod: req.MethodGET, serverResponseCode: 200,
+			name: "simple GET request", requestMethod: http.MethodGet, serverResponseCode: 200,
 		},
 	}
 
@@ -33,7 +33,7 @@ func TestReq(t *testing.T) {
 			json.NewEncoder(w).Encode(&responseType{Success: true})
 		}))
 
-		if c.requestMethod == req.MethodGET {
+		if c.requestMethod == http.MethodGet {
 			res, err := req.Get[responseType](server.URL)
 			if err != nil {
 				t.Errorf("did not expect error, but got one: %s", err.Error())

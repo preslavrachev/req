@@ -14,10 +14,6 @@ const (
 	ResponseFormatJSON responseFormat = iota
 )
 
-const (
-	MethodGET = "GET"
-)
-
 type requestConfig struct {
 	ctx        context.Context
 	cancelFunc context.CancelFunc
@@ -45,13 +41,17 @@ func (r *HTTPResult[T]) Res() *T         { return r.r }
 func (r *HTTPResult[T]) StatusCode() int { return r.c }
 
 func Get[T any](url string, opts ...func(*requestConfig)) (HTTPResult[T], error) {
+	return req[T](http.MethodGet, url, opts...)
+}
+
+func req[T any](method string, url string, opts ...func(*requestConfig)) (HTTPResult[T], error) {
 	config := initConfig()
 	r := HTTPResult[T]{}
 
 	ctx := config.ctx
 	defer config.cancelFunc()
 
-	req, err := http.NewRequestWithContext(ctx, MethodGET, url, nil)
+	req, err := http.NewRequestWithContext(ctx, method, url, nil)
 	if err != nil {
 		return r, fmt.Errorf("req: GET request to %s failed: %w", url, err)
 	}
