@@ -14,6 +14,8 @@ const (
 	ResponseFormatJSON responseFormat = iota
 )
 
+type RequestOption func(*requestConfig)
+
 type requestConfig struct {
 	ctx        context.Context
 	cancelFunc context.CancelFunc
@@ -40,13 +42,17 @@ type HTTPResult[T any] struct {
 func (r *HTTPResult[T]) Res() *T         { return r.r }
 func (r *HTTPResult[T]) StatusCode() int { return r.c }
 
-func Get[T any](url string, opts ...func(*requestConfig)) (HTTPResult[T], error) {
+func Get[T any](url string, opts ...RequestOption) (HTTPResult[T], error) {
 	return req[T](http.MethodGet, url, opts...)
 }
 
-func req[T any](method string, url string, opts ...func(*requestConfig)) (HTTPResult[T], error) {
+func req[T any](method string, url string, opts ...RequestOption) (HTTPResult[T], error) {
 	config := initConfig()
 	r := HTTPResult[T]{}
+
+	for _, opt := range opts {
+		opt(config)
+	}
 
 	ctx := config.ctx
 	defer config.cancelFunc()
@@ -74,13 +80,13 @@ func req[T any](method string, url string, opts ...func(*requestConfig)) (HTTPRe
 	return r, nil
 }
 
-func WithTimeout(t time.Duration) func(r *requestConfig) {
+func WithTimeout(t time.Duration) RequestOption {
 	return func(r *requestConfig) {
 		r.ctx, r.cancelFunc = context.WithTimeout(r.ctx, t)
 	}
 }
 
-func WithContext(c context.Context) func(r *requestConfig) {
+func WithContext(c context.Context) RequestOption {
 	return func(r *requestConfig) {
 		r.ctx, r.cancelFunc = context.WithCancel(c)
 	}
